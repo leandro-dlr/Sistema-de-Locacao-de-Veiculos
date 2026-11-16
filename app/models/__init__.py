@@ -1,4 +1,3 @@
-# Importar todos os modelos aqui garante que o Alembic e o create_all os enxerguem.
 from app.models.enums import FormaPagamento, StatusLocacao, StatusPagamento, StatusVeiculo
 from app.models.categoria import Categoria
 from app.models.veiculo import Veiculo
