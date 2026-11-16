@@ -11,7 +11,6 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./locadora.db")
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(DATABASE_URL, connect_args=_connect_args)
 
-# SQLite ignora chaves estrangeiras por padrao; ativa para se comportar como o PostgreSQL.
 if DATABASE_URL.startswith("sqlite"):
     @event.listens_for(engine, "connect")
     def _fk_pragma(dbapi_conn, _):
