@@ -33,11 +33,9 @@ class Locacao(Base):
 
     cliente: Mapped["Cliente"] = relationship(back_populates="locacoes")
     veiculo: Mapped["Veiculo"] = relationship(back_populates="locacoes")
-    # 1:1 -> uma locacao tem um pagamento
     pagamento: Mapped["Pagamento | None"] = relationship(
         back_populates="locacao", uselist=False, cascade="all, delete-orphan"
     )
-    # N:N -> uma locacao pode ter varios acessorios
     acessorios: Mapped[list["Acessorio"]] = relationship(
         secondary=locacao_acessorio, back_populates="locacoes"
     )

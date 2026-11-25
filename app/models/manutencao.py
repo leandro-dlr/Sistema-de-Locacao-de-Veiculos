@@ -20,7 +20,7 @@ class Manutencao(Base):
     veiculo_id: Mapped[int] = mapped_column(ForeignKey("veiculos.id"), nullable=False, index=True)
     descricao: Mapped[str] = mapped_column(String(255), nullable=False)
     data_inicio: Mapped[date] = mapped_column(Date, nullable=False)
-    data_fim: Mapped[date | None] = mapped_column(Date)  # None = ainda em andamento
+    data_fim: Mapped[date | None] = mapped_column(Date)
     custo: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
 
     veiculo: Mapped["Veiculo"] = relationship(back_populates="manutencoes")
