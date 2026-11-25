@@ -15,5 +15,4 @@ class Categoria(Base):
     descricao: Mapped[str | None] = mapped_column(String(255))
     valor_diaria: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
 
-    # 1:N -> uma categoria tem varios veiculos
     veiculos: Mapped[list["Veiculo"]] = relationship(back_populates="categoria")
