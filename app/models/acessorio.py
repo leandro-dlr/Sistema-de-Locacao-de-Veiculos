@@ -15,7 +15,6 @@ class Acessorio(Base):
     nome: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
     valor_diaria: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False, default=0)
 
-    # N:N -> um acessorio pode estar em varias locacoes
     locacoes: Mapped[list["Locacao"]] = relationship(
         secondary=locacao_acessorio, back_populates="acessorios"
     )
