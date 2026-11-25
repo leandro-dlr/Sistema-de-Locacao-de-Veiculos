@@ -13,7 +13,6 @@ class Pagamento(Base):
     __table_args__ = (CheckConstraint("valor > 0", name="ck_pagamento_valor"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    # unique=True na FK garante o relacionamento 1:1 com Locacao
     locacao_id: Mapped[int] = mapped_column(
         ForeignKey("locacoes.id", ondelete="CASCADE"), unique=True, nullable=False
     )

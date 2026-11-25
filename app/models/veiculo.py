@@ -14,7 +14,7 @@ class Veiculo(Base):
     marca: Mapped[str] = mapped_column(String(50), nullable=False)
     modelo: Mapped[str] = mapped_column(String(80), nullable=False)
     ano: Mapped[int] = mapped_column(Integer, nullable=False)
-    cor: Mapped[str | None] = mapped_column(String(30))  # adicionado na migracao 0002
+    cor: Mapped[str | None] = mapped_column(String(30))
     quilometragem: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     status: Mapped[StatusVeiculo] = mapped_column(
         Enum(StatusVeiculo, native_enum=False, length=20, values_callable=lambda e: [m.value for m in e]),
