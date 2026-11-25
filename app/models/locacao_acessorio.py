@@ -2,7 +2,6 @@ from sqlalchemy import Column, ForeignKey, Table
 
 from app.database import Base
 
-# Tabela associativa do relacionamento N:N entre Locacao e Acessorio.
 locacao_acessorio = Table(
     "locacao_acessorio",
     Base.metadata,
