@@ -48,7 +48,7 @@ async def tratar_app_error(request: Request, exc: AppError):
 
 
 async def tratar_http(request: Request, exc: StarletteHTTPException):
-    codigos = {404: "nao_encontrado", 405: "metodo_nao_permitido"}
+    codigos = {404: "nao_encontrado", 405: "metodo_nao_permitido", 409: "conflito", 422: "validacao"}
     mensagem = "Recurso não encontrado." if exc.status_code == 404 else str(exc.detail)
     return _resposta(exc.status_code, codigos.get(exc.status_code, "erro_http"), mensagem)
 

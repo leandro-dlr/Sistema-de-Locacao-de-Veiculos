@@ -102,7 +102,7 @@ def periodos_do_veiculo(i: int, hoje: date) -> list[tuple[date, date, m.StatusLo
     if i == MANUTENCAO_AGENDADA:
         periodos.append((hoje + timedelta(days=5), hoje + timedelta(days=10), m.StatusLocacao.RESERVADA))
         periodos.append((hoje + timedelta(days=40), hoje + timedelta(days=45), m.StatusLocacao.RESERVADA))
-    elif i % 3 == 1 and i not in INATIVO:
+    elif i % 3 == 1 and i not in INATIVO and i not in EM_MANUTENCAO:
         ini = hoje + timedelta(days=random.randint(5, 20))
         periodos.append((ini, ini + timedelta(days=random.randint(3, 8)), m.StatusLocacao.RESERVADA))
 

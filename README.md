@@ -3,7 +3,7 @@
 **Trabalho Prático 2 — Desenvolvimento de Sistema com Persistência Relacional**
 Disciplina: QXD0099 · Tema 18 — Sistema de Locação de Veículos
 
-**Integrantes:** _preencher com os nomes e matrículas_
+**Integrantes:** Leandro Davi - 564750, Alessy Kauã - 564620, Analu Sousa - 578265
 
 ## Objetivo
 
@@ -94,7 +94,7 @@ cp .env.example .env              # Windows: copy .env.example .env
 
 A aplicação escolhe o banco apenas pela variável `DATABASE_URL` no arquivo `.env`; **nenhum código precisa mudar**.
 
-**SQLite** (padrão, não exige instalação):
+**SQLite** (alternativa local, não exige instalação):
 ```
 DATABASE_URL=sqlite:///./locadora.db
 ```
@@ -120,6 +120,7 @@ alembic revision --autogenerate -m "descricao"   # nova migração a partir dos 
 Migrações existentes:
 - `0001` — estrutura inicial (todas as tabelas, chaves, índices e constraints)
 - `0002` — adiciona a coluna `cor` em `veiculos` (alteração estrutural posterior)
+- `0003` — adiciona condições físicas de retirada e devolução em `locacoes`
 
 > Apenas **uma pessoa** deve gerar migrações, para evitar múltiplas "heads". Se precisar alterar uma tabela, peça a quem cuida do banco.
 
@@ -153,7 +154,34 @@ Documentação interativa: http://localhost:8000/docs · Verificação do banco:
 | PUT | `/categorias/{id}` · `/acessorios/{id}` | Atualiza (parcial) |
 | DELETE | `/categorias/{id}` · `/acessorios/{id}` | Remove (204) |
 
-_Demais endpoints (clientes, veículos, locações, pagamentos, manutenções, consultas e estatísticas): seções a serem preenchidas pelos respectivos responsáveis._
+### Demais recursos
+
+Todos os recursos abaixo possuem POST, GET (lista), GET por ID, PUT por ID e DELETE por ID. Use `/docs` para consultar os schemas e códigos HTTP exatos.
+
+| Recurso | Rota base | Filtros/paginação |
+|---|---|---|
+| Clientes | `/clientes/` | `nome`, `skip`, `limit` |
+| Veículos | `/veiculos/` | `placa`, `categoria_id`, `status`, `skip`, `limit` |
+| Locações | `/locacoes` | `status`, `skip`, `limit` |
+| Pagamentos | `/pagamentos` | `skip`, `limit` |
+| Manutenções | `/manutencoes` | `skip`, `limit` |
+
+| Método | Rota específica |
+|---|---|
+| GET | `/veiculos/disponiveis?data_inicio=AAAA-MM-DD&data_fim=AAAA-MM-DD` |
+| GET | `/clientes/{cliente_id}/locacoes` |
+| GET | `/veiculos/{veiculo_id}/locacoes` |
+| GET | `/veiculos/{veiculo_id}/manutencoes` |
+| GET | `/categorias/{categoria_id}/veiculos` |
+| POST/DELETE | `/locacoes/{locacao_id}/acessorios/{acessorio_id}` |
+| GET | `/locacoes/atrasadas` |
+| GET | `/locacoes/{locacao_id}/financeiro` |
+| GET | `/consultas/clientes/{cliente_id}/locacoes?data_inicio=AAAA-MM-DD&data_fim=AAAA-MM-DD` |
+| GET | `/consultas/veiculos/nunca-locados` |
+| GET | `/consultas/veiculos/manutencao-e-locacao-futura` |
+| GET | `/estatisticas` |
+| GET | `/estatisticas/utilizacao-frota?data_inicio=AAAA-MM-DD&data_fim=AAAA-MM-DD` |
+
 
 ## Tratamento de erros
 
@@ -177,4 +205,29 @@ Para lançar erros de negócio em qualquer camada: `raise NotFoundError("...")`,
 
 ## Regras de negócio, consultas e estatísticas
 
-_Seções a serem preenchidas pelos responsáveis (cadastros, locações, disponibilidade e estatísticas)._
+### Funcionalidade específica (F17)
+
+A consulta `/veiculos/disponiveis` exclui veículos inativos, reservas ou locações ativas sobrepostas e manutenções incompatíveis. A mesma regra é aplicada ao cadastrar, reagendar e ativar reservas. As operações de reserva e manutenção são serializadas por veículo via atualização transacional da linha do veículo. O sistema trabalha com datas inteiras: locações usam intervalo [início, fim), permitindo nova retirada no dia da devolução; manutenção inclui seu último dia. A equipe assume preparação no mesmo dia, sem horário específico. Uma manutenção sem data final bloqueia indefinidamente a partir de seu início. O status cadastral do veículo é atualizado nas operações de locação/manutenção; a consulta por período usa os registros, não apenas esse status.
+
+### Regras de negócio
+
+- CPF, placa e outros campos únicos não podem ser duplicados. Cliente e veículo inativos não podem iniciar novas locações.
+- Reserva só pode passar para ativa ou cancelada; locação ativa só pode passar para finalizada. Estados encerrados não são reabertos.
+- A retirada ocorre dentro do período contratado; não se entrega um veículo ainda em posse de outro cliente.
+- Na retirada, envie `status: ativa`, `quilometragem_retirada` e, opcionalmente, `condicao_retirada`. Na devolução, envie `status: finalizada`, `quilometragem_devolucao`, `condicao_devolucao` e, se necessário, `data_devolucao` (padrão: hoje). Quilometragem não pode diminuir. Se não for informada, assume-se o valor cadastrado.
+- Reservas podem ser reagendadas apenas se não quitadas e se o novo período estiver livre. Acessórios podem ser alterados em reservas não quitadas.
+- Manutenção conflitante com uma reserva ou locação é rejeitada. Para manutenção emergencial, resolva primeiro as reservas envolvidas e registre a devolução de veículo em uso.
+- Devolução atrasada: enquanto ativa e vencida, a locação bloqueia novas reservas futuras. Ao registrar a devolução real, reservas sobrepostas ao atraso são canceladas, inclusive seus pagamentos pendentes. Valores já pagos permanecem registrados e são exibidos como crédito/estorno a resolver no endpoint financeiro. A aplicação não efetua estornos reais.
+- Valor total: diária da categoria + diárias dos acessórios, multiplicadas pelos dias contratados; atraso acrescenta dias, devolução antecipada não reduz o valor. A devolução física é independente da quitação financeira. O endpoint financeiro informa saldo e créditos; o modelo mantém um pagamento por locação.
+- Exclusões que apagariam histórico de clientes/veículos ou locações com pagamentos são bloqueadas; prefira desativação ou cancelamento conforme o caso.
+
+### Consultas e agregações
+
+As consultas complexas incluem histórico do cliente por período com veículo e pagamento, veículos nunca locados e veículos com manutenção pendente e locação futura. A estatística geral usa COUNT, SUM, AVG e GROUP BY. A utilização da frota calcula dias efetivamente locados no intervalo, divididos pelo total de veículos cadastrados multiplicado pelos dias do intervalo (não desconta indisponibilidades nem veículos inativos). Os dados são recuperados por consulta relacional; a interseção de datas é calculada em Python para compatibilidade entre bancos.
+
+### Testes e demonstração
+
+Execute `python -m unittest discover -s tests -v` para os testes isolados em SQLite (não usam seu banco). Para PostgreSQL, configure a URL de um banco de teste separado e execute `alembic upgrade head`, `alembic check`, `python -m scripts.seed`, `uvicorn app.main:app --reload`; teste os mesmos cenários no Swagger. Não use `--reset` em banco com dados reais. Para apresentar: reserve um veículo livre, tente reserva conflitante, reagende para manutenção, cancele e consulte disponibilidade; mostre retirada/devolução e atraso, histórico, estatísticas, paginação e filtros. Confira a versão `0003` com `alembic current`.
+
+**Banco existente:** faça backup antes da migração. Se já foi criado pelo Alembic, basta `alembic upgrade head`. Se foi criado automaticamente pela versão antiga sem histórico de migrações, verifique o esquema antes de reconciliar a versão; não aplique `stamp` às cegas. Para demonstração, prefira um banco novo.
+

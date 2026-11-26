@@ -7,6 +7,8 @@ from app.models.enums import StatusLocacao
 
 def locacoes_do_cliente_no_periodo(db: Session, cliente_id: int, inicio: date, fim: date):
 
+    if fim <= inicio:
+        raise HTTPException(422, "Período inválido")
     if not db.get(Cliente, cliente_id):
         raise HTTPException(404, "Cliente não encontrado")
     q = (

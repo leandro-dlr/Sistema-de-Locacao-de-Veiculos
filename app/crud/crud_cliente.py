@@ -15,7 +15,7 @@ def get_clientes(db: Session, nome: str | None = None, skip: int = 0, limit: int
     if nome:
         query = query.filter(Cliente.nome.ilike(f"%{nome}%"))
     total = query.count()
-    clientes = query.offset(skip).limit(limit).all()
+    clientes = query.order_by(Cliente.id).offset(skip).limit(limit).all()
     return clientes, total
 
 
@@ -23,7 +23,7 @@ def create_cliente(db: Session, cliente_in: ClienteCreate):
     # Regra: Impedir CPF duplicado
     db_cliente = db.query(Cliente).filter(Cliente.cpf == cliente_in.cpf).first()
     if db_cliente:
-        raise HTTPException(status_code=400, detail="Já existe um cliente cadastrado com este CPF.")
+        raise HTTPException(status_code=409, detail="Já existe um cliente cadastrado com este CPF.")
     
     novo_cliente = Cliente(**cliente_in.model_dump())
     db.add(novo_cliente)
@@ -38,6 +38,10 @@ def update_cliente(db: Session, cliente_id: int, cliente_in: ClienteUpdate):
         raise HTTPException(status_code=404, detail="Cliente não encontrado.")
     
     update_data = cliente_in.model_dump(exclude_unset=True)
+    if any(update_data.get(k, True) is None for k in ("nome", "cpf", "ativo")):
+        raise HTTPException(422, "Campo obrigatório")
+    if update_data.get("ativo") is False and any(l.status in (StatusLocacao.ATIVA, StatusLocacao.RESERVADA) for l in cliente.locacoes):
+        raise HTTPException(409, "Cliente possui locação ou reserva")
     for key, value in update_data.items():
         setattr(cliente, key, value)
     
@@ -56,8 +60,10 @@ def delete_cliente(db: Session, cliente_id: int):
         Locacao.status.in_([StatusLocacao.ATIVA, StatusLocacao.RESERVADA])
     ).first()
     if locacao_ativa:
-        raise HTTPException(status_code=400, detail="Não é possível excluir um cliente com locação ativa ou reservada.")
+        raise HTTPException(status_code=409, detail="Não é possível excluir um cliente com locação ativa ou reservada.")
     
+    if cliente.locacoes:
+        raise HTTPException(409, "Cliente possui histórico; utilize desativação")
     db.delete(cliente)
     db.commit()
     return {"detail": "Cliente excluído com sucesso."}

@@ -1,8 +1,9 @@
 from datetime import date
 from decimal import Decimal
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.models.enums import StatusLocacao, StatusVeiculo
 from app.schemas.pagamento import PagamentoOut
+from app.schemas.acessorio import AcessorioRead
 
 class LocacaoCreate(BaseModel):
     
@@ -10,7 +11,7 @@ class LocacaoCreate(BaseModel):
     veiculo_id: int
     data_inicio: date
     data_fim: date
-    acessorios_ids: list[int] = []
+    acessorios_ids: list[int] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def checar_datas(self):
@@ -23,6 +24,11 @@ class LocacaoUpdate(BaseModel):
     data_inicio: date | None = None
     data_fim: date | None = None
     status: StatusLocacao | None = None
+    quilometragem_retirada: int | None = Field(None, ge=0)
+    quilometragem_devolucao: int | None = Field(None, ge=0)
+    condicao_retirada: str | None = Field(None, max_length=500)
+    condicao_devolucao: str | None = Field(None, max_length=500)
+    data_devolucao: date | None = None
 
 class LocacaoOut(BaseModel):
 
@@ -34,8 +40,13 @@ class LocacaoOut(BaseModel):
     data_inicio: date
     data_fim: date
     data_devolucao: date | None
+    quilometragem_retirada: int | None
+    quilometragem_devolucao: int | None
+    condicao_retirada: str | None
+    condicao_devolucao: str | None
     valor_total: Decimal | None
     status: StatusLocacao
+    acessorios: list[AcessorioRead]
 
 class VeiculoResumo(BaseModel):
 

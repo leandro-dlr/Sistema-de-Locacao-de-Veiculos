@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.crud import categoria as crud
 from app.database import get_db
 from app.schemas.categoria import CategoriaCreate, CategoriaRead, CategoriaUpdate
+from app.schemas.veiculo import VeiculoResponse
 
 router = APIRouter(prefix="/categorias", tags=["Categorias"])
 
@@ -37,3 +38,8 @@ def atualizar_categoria(categoria_id: int, dados: CategoriaUpdate, db: Session =
 def remover_categoria(categoria_id: int, db: Session = Depends(get_db)):
     crud.remover(db, categoria_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/{categoria_id}/veiculos", response_model=list[VeiculoResponse])
+def listar_veiculos_da_categoria(categoria_id: int, db: Session = Depends(get_db)):
+    categoria = crud.obter(db, categoria_id)
+    return categoria.veiculos
