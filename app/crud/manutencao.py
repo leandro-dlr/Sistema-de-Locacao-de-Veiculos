@@ -6,7 +6,7 @@ from app.models.enums import StatusVeiculo
 from app.schemas.manutencao import ManutencaoCreate, ManutencaoUpdate
 
 def _sincronizar_status_veiculo(db: Session, veiculo: Veiculo):
-    //aqui a nossa manutenção está em andamento 
+    #qui a nossa manutenção está em andamento 
     db.flush()
     em_andamento = db.scalars(
         select(Manutencao.id).where(
