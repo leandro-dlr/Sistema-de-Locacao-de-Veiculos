@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.crud import manutencao as crud
 from app.database import get_db
@@ -11,7 +11,7 @@ def criar(dados: ManutencaoCreate, db: Session = Depends(get_db)):
     return crud.criar(db, dados)
 
 @router.get("", response_model=list[ManutencaoOut])
-def listar(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+def listar(skip: int = Query(0, ge=0), limit: int = Query(20, ge=1, le=100), db: Session = Depends(get_db)):
     return crud.listar(db, skip, limit)
 
 @router.get("/{manutencao_id}", response_model=ManutencaoOut)

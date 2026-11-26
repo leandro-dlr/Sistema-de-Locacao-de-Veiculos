@@ -53,7 +53,7 @@ def deletar_cliente(cliente_id: int, db: Session = Depends(get_db)):
     return crud_cliente.delete_cliente(db=db, cliente_id=cliente_id)
 
 
-# Consulta relacional exigida: GET /clientes/{id}/locacoes[cite: 2]
+# Consulta relacional exigida: GET /clientes/{id}/locacoes
 @router.get("/{cliente_id}/locacoes")
 def listar_locacoes_cliente(cliente_id: int, db: Session = Depends(get_db)):
     """Retorna todas as locações associadas a um cliente específico."""

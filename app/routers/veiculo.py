@@ -6,7 +6,6 @@ from app.schemas.veiculo import VeiculoCreate, VeiculoUpdate, VeiculoResponse
 from app.models.enums import StatusVeiculo
 from app.models.veiculo import Veiculo
 from app.models.manutencao import Manutencao
-from app.models.categoria import Categoria
 from app.crud import crud_veiculo 
 
 router = APIRouter()
@@ -27,7 +26,7 @@ def listar_veiculos(
     limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
-    """Lista veículos com paginação e filtros (?status=, ?categoria_id=, ?placa=)[cite: 2]."""
+    """Lista veículos com paginação e filtros (?status=, ?categoria_id=, ?placa=)"""
     veiculos, total = crud_veiculo.get_veiculos(
         db=db, status_veiculo=status, categoria_id=categoria_id, placa=placa, skip=skip, limit=limit
     )
@@ -69,12 +68,11 @@ def listar_manutencoes_veiculo(veiculo_id: int, db: Session = Depends(get_db)):
     manutencoes = db.query(Manutencao).filter(Manutencao.veiculo_id == veiculo_id).all()
     return manutencoes
 
+from app.schemas.locacao import LocacaoOut
+from app.models import Locacao
 
-@router.get("/categorias/{categoria_id}/veiculos")
-def listar_veiculos_por_categoria(categoria_id: int, db: Session = Depends(get_db)):
-    """Retorna todos os veículos pertencentes a uma categoria específica."""
-    categoria = db.query(Categoria).filter(Categoria.id == categoria_id).first()
-    if not categoria:
-        raise HTTPException(status_code=404, detail="Categoria não encontrada.")
-    veiculos = db.query(Veiculo).filter(Veiculo.categoria_id == categoria_id).all()
-    return veiculos
+@router.get('/{veiculo_id}/locacoes', response_model=list[LocacaoOut])
+def historico_locacoes(veiculo_id: int, db: Session = Depends(get_db)):
+    if not db.get(Veiculo, veiculo_id):
+        raise HTTPException(404, 'Veículo não encontrado')
+    return db.query(Locacao).filter(Locacao.veiculo_id == veiculo_id).order_by(Locacao.data_inicio).all()

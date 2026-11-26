@@ -2,12 +2,10 @@ from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.database import Base, engine, get_db
+from app.database import get_db
 from app.error_handlers import registrar_handlers
 from app.routers import (acessorios, categorias, cliente, veiculo,manutencoes, pagamentos, locacoes, disponibilidade, consultas, estatisticas,)
 
-# Cria as tabelas no banco de dados automaticamente ao iniciar
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Sistema de Locação de Veículos - TP2",

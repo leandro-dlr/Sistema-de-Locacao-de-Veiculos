@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, Date, Enum, ForeignKey, Numeric
+from sqlalchemy import CheckConstraint, Date, Enum, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -23,6 +23,8 @@ class Locacao(Base):
     data_devolucao: Mapped[date | None] = mapped_column(Date)
     quilometragem_retirada: Mapped[int | None]
     quilometragem_devolucao: Mapped[int | None]
+    condicao_retirada: Mapped[str | None] = mapped_column(String(500))
+    condicao_devolucao: Mapped[str | None] = mapped_column(String(500))
     valor_total: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
     status: Mapped[StatusLocacao] = mapped_column(
         Enum(StatusLocacao, native_enum=False, length=20, values_callable=lambda e: [m.value for m in e]),
