@@ -40,20 +40,73 @@ com acessórios e pagamento, controle de manutenções e verificação de dispon
 erDiagram
     CATEGORIAS ||--o{ VEICULOS : classifica
     CLIENTES ||--o{ LOCACOES : realiza
-    VEICULOS ||--o{ LOCACOES : "é locado em"
+    VEICULOS ||--o{ LOCACOES : alugado_em
     VEICULOS ||--o{ MANUTENCOES : recebe
-    LOCACOES ||--o| PAGAMENTOS : "é paga por"
+    LOCACOES ||--o| PAGAMENTOS : possui
     LOCACOES ||--o{ LOCACAO_ACESSORIO : possui
-    ACESSORIOS ||--o{ LOCACAO_ACESSORIO : "aparece em"
+    ACESSORIOS ||--o{ LOCACAO_ACESSORIO : aparece_em
 
-    CATEGORIAS { int id PK; string nome UK; string descricao; decimal valor_diaria }
-    VEICULOS { int id PK; string placa UK; string marca; string modelo; int ano; string cor; int quilometragem; string status; int categoria_id FK }
-    CLIENTES { int id PK; string nome; string cpf UK; string cnh; string email UK; string telefone; bool ativo }
-    LOCACOES { int id PK; int cliente_id FK; int veiculo_id FK; date data_inicio; date data_fim; date data_devolucao; int quilometragem_retirada; int quilometragem_devolucao; decimal valor_total; string status }
-    PAGAMENTOS { int id PK; int locacao_id FK,UK; decimal valor; string forma; string status; date data_pagamento }
-    MANUTENCOES { int id PK; int veiculo_id FK; string descricao; date data_inicio; date data_fim; decimal custo }
-    ACESSORIOS { int id PK; string nome UK; decimal valor_diaria }
-    LOCACAO_ACESSORIO { int locacao_id PK,FK; int acessorio_id PK,FK }
+    CATEGORIAS {
+        int id PK
+        string nome UK
+        string descricao
+        decimal valor_diaria
+    }
+
+    VEICULOS {
+        int id PK
+        string placa UK
+        string marca
+        string modelo
+        int ano
+        string cor
+        int quilometragem
+    }
+
+    CLIENTES {
+        int id PK
+        string nome
+        string cpf UK
+        string cnh
+        string email UK
+        string telefone
+        bool ativo
+    }
+
+    LOCACOES {
+        int id PK
+        int cliente_id FK
+        int veiculo_id FK
+        date data_inicio
+        date data_fim
+    }
+
+    PAGAMENTOS {
+        int id PK
+        int locacao_id FK
+        decimal valor
+        string forma
+        string status
+    }
+
+    MANUTENCOES {
+        int id PK
+        int veiculo_id FK
+        string descricao
+        date data_inicio
+        date data_fim
+    }
+
+    ACESSORIOS {
+        int id PK
+        string nome UK
+        decimal valor_diaria
+    }
+
+    LOCACAO_ACESSORIO {
+        int locacao_id PK, FK
+        int acessorio_id PK, FK
+    }
 ```
 
 ### Valores de status
